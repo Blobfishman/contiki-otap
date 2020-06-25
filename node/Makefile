@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = node
+CONTIKI_PROJECT = node2
 all: $(CONTIKI_PROJECT)
 
 CONTIKI=../contiki-ng

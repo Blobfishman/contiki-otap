@@ -13,8 +13,8 @@
 
 static struct simple_udp_connection udp_conn;
 
-PROCESS(sink_process, "Sin");
-AUTOSTART_PROCESSES(&sink_process);
+PROCESS(gateway_process, "Gateway");
+AUTOSTART_PROCESSES(&gateway_process);
 /*---------------------------------------------------------------------------*/
 static void
 udp_rx_callback(struct simple_udp_connection *c,
@@ -32,7 +32,7 @@ udp_rx_callback(struct simple_udp_connection *c,
   LOG_INFO_("\n");
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(sink_process, ev, data)
+PROCESS_THREAD(gateway_process, ev, data)
 {
   PROCESS_BEGIN();
 
