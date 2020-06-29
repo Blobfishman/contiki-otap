@@ -31,12 +31,23 @@ udp_rx_callback(struct simple_udp_connection *c,
 {
 
 
+  LOG_INFO("Message: '%.*s' received on ", datalen, (char *) data);
+  LOG_INFO_6ADDR(receiver_addr);
+  LOG_INFO_(" Port %u", receiver_port);
+  LOG_INFO_(" from ");
+  LOG_INFO_6ADDR(sender_addr);
+  LOG_INFO_(" Port %u", sender_port);
+  LOG_INFO_("\n");
+
+  /*
   LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
   LOG_INFO_6ADDR(sender_addr);
+  LOG_INFO_(" on port %u", receiver_port);
 #if LLSEC802154_CONF_ENABLED
   LOG_INFO_(" LLSEC LV:%d", uipbuf_get_attr(UIPBUF_ATTR_LLSEC_LEVEL));
 #endif
   LOG_INFO_("\n");
+  */
 
 }
 /*---------------------------------------------------------------------------*/
