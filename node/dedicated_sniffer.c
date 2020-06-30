@@ -31,7 +31,7 @@ udp_rx_callback(struct simple_udp_connection *c,
 {
 
 
-  LOG_INFO_("[Packet Log] Message: '%.*s' received on ", datalen, (char *) data);
+  LOG_INFO_("[Dedicated Sniffer] [Packet Log] Message: '%.*s' received on ", datalen, (char *) data);
   LOG_INFO_6ADDR(receiver_addr);
   LOG_INFO_(" Port %u", receiver_port);
   LOG_INFO_(" from ");
@@ -73,8 +73,6 @@ PROCESS_THREAD(udp_client_process, ev, data)
       LOG_INFO("Sending request %u to ", count);
       LOG_INFO_6ADDR(&dest_ipaddr);
       LOG_INFO_("\n");
-      snprintf(str, sizeof(str), "hello %d", count);
-      simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
       count++;
     } else {
       LOG_INFO("Not reachable yet\n");
