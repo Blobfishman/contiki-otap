@@ -58,3 +58,5 @@ compile_commands.json
 tags
 %*
 Session.vim
+.vscode
+.clangd
