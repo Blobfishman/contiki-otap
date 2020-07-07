@@ -4,29 +4,26 @@ import re
 import matplotlib
 from datetime import datetime, time, date
 import matplotlib.pyplot as plt
-
-TIME_FORMAT = "%M:%S.%f"
-max_time = 0
+from scapy.all import *
 
 def generateDiagrams(input_file, output_file, only_packets, only_traffic): 
 
-    transmission_file = open(input_file, "r")
+    start_time = 0
 
     packets = {}
     load = {}
 
-    while True:
-        line = transmission_file.readline()
-        if not line:
-            break
-        if not "[Packet Log]" in line:
-            continue
-        message = re.search("Message: '([^']+)'", line).group(1)
-        time = re.search("([0-9]+:[0-9]{2}\.[0-9]{3})", line).group(1)
+    pcap_packets = rdpcap(input_file)
 
-        # for some reason, without the addition the 0th second is -3543
-        time = int(datetime.combine(date.fromtimestamp(0), datetime.strptime(time, TIME_FORMAT).time()).timestamp()) + 3543
+    for packet in pcap_packets:
+        if start_time == 0:
+            start_time = packet.time
+        time = int(packet.time - start_time)
         max_time = time
+
+        total_size = len(packet)
+#       use_data_size = 
+
 
         if time in packets:
             packets[time] += 1
@@ -34,12 +31,10 @@ def generateDiagrams(input_file, output_file, only_packets, only_traffic):
             packets[time] = 1
 
         if time in load:
-            load[time] += len(message)
+            load[time] += total_size
         else:
-            load[time] = len(message)
+            load[time] = total_size
 
-    transmission_file.close()
-    
     time_list = []
     packet_list = []
     load_list = []
@@ -81,15 +76,15 @@ def generateDiagrams(input_file, output_file, only_packets, only_traffic):
     
 
 if len(sys.argv) < 3:
-    print('usage: ' + sys.argv[0] + ' cooja_file output_file [--only-packets//--only-traffic]')
+    print('usage: ' + sys.argv[0] + ' pcap_file output_file [--only-packets//--only-traffic]')
     exit(0)
 
 only_packets = False
 only_traffic = False
 if len(sys.argv) > 3:
-    if "-only-packets" in sys.argv[3]:
+    if "-only-packets" in sys.argv[3] or "-packets-only" in sys.argv[3]:
         only_packets = True
-    if "-only-traffic" in sys.argv[3]:
+    if "-only-traffic" in sys.argv[3] or "-traffic-only" in sys.argv[3]:
         only_traffic = True
 
 generateDiagrams(sys.argv[1], sys.argv[2], only_packets, only_traffic)
