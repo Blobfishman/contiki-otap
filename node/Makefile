@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = udp-client udp-server
+CONTIKI_PROJECT = udp-client udp-server updater-test
 all: $(CONTIKI_PROJECT)
 
 CONTIKI=../contiki-ng
