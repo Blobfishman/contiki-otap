@@ -54,3 +54,4 @@ dkms.conf
 *.cooja
 *.sky
 */build/*
+*.z1
