@@ -56,17 +56,6 @@ CMAKE_BINARY_DIR = /home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
@@ -77,6 +66,17 @@ edit_cache:
 edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -111,6 +111,32 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named Creator-xor
+
+# Build rule for target.
+Creator-xor: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Creator-xor
+.PHONY : Creator-xor
+
+# fast build rule for target.
+Creator-xor/fast:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/build
+.PHONY : Creator-xor/fast
+
+#=============================================================================
+# Target rules for targets named Creator-fastlz
+
+# Build rule for target.
+Creator-fastlz: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Creator-fastlz
+.PHONY : Creator-fastlz
+
+# fast build rule for target.
+Creator-fastlz/fast:
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/build
+.PHONY : Creator-fastlz/fast
+
+#=============================================================================
 # Target rules for targets named Creator
 
 # Build rule for target.
@@ -122,6 +148,60 @@ Creator: cmake_check_build_system
 Creator/fast:
 	$(MAKE) -f CMakeFiles/Creator.dir/build.make CMakeFiles/Creator.dir/build
 .PHONY : Creator/fast
+
+creator-fastlz.o: creator-fastlz.c.o
+
+.PHONY : creator-fastlz.o
+
+# target to build an object file
+creator-fastlz.c.o:
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/creator-fastlz.c.o
+.PHONY : creator-fastlz.c.o
+
+creator-fastlz.i: creator-fastlz.c.i
+
+.PHONY : creator-fastlz.i
+
+# target to preprocess a source file
+creator-fastlz.c.i:
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/creator-fastlz.c.i
+.PHONY : creator-fastlz.c.i
+
+creator-fastlz.s: creator-fastlz.c.s
+
+.PHONY : creator-fastlz.s
+
+# target to generate assembly for a file
+creator-fastlz.c.s:
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/creator-fastlz.c.s
+.PHONY : creator-fastlz.c.s
+
+creator-xor.o: creator-xor.c.o
+
+.PHONY : creator-xor.o
+
+# target to build an object file
+creator-xor.c.o:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/creator-xor.c.o
+.PHONY : creator-xor.c.o
+
+creator-xor.i: creator-xor.c.i
+
+.PHONY : creator-xor.i
+
+# target to preprocess a source file
+creator-xor.c.i:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/creator-xor.c.i
+.PHONY : creator-xor.c.i
+
+creator-xor.s: creator-xor.c.s
+
+.PHONY : creator-xor.s
+
+# target to generate assembly for a file
+creator-xor.c.s:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/creator-xor.c.s
+.PHONY : creator-xor.c.s
 
 creator.o: creator.c.o
 
@@ -156,6 +236,8 @@ home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.o: ho
 
 # target to build an object file
 home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.o:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.o
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.o
 	$(MAKE) -f CMakeFiles/Creator.dir/build.make CMakeFiles/Creator.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.o
 .PHONY : home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.o
 
@@ -165,6 +247,8 @@ home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.i: ho
 
 # target to preprocess a source file
 home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.i:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.i
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.i
 	$(MAKE) -f CMakeFiles/Creator.dir/build.make CMakeFiles/Creator.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.i
 .PHONY : home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.i
 
@@ -174,6 +258,8 @@ home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.s: ho
 
 # target to generate assembly for a file
 home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.s:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.s
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.s
 	$(MAKE) -f CMakeFiles/Creator.dir/build.make CMakeFiles/Creator.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.s
 .PHONY : home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/FastLZ/fastlz.c.s
 
@@ -183,6 +269,8 @@ home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.o: 
 
 # target to build an object file
 home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.o:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.o
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.o
 	$(MAKE) -f CMakeFiles/Creator.dir/build.make CMakeFiles/Creator.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.o
 .PHONY : home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.o
 
@@ -192,6 +280,8 @@ home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.i: 
 
 # target to preprocess a source file
 home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.i:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.i
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.i
 	$(MAKE) -f CMakeFiles/Creator.dir/build.make CMakeFiles/Creator.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.i
 .PHONY : home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.i
 
@@ -201,6 +291,8 @@ home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.s: 
 
 # target to generate assembly for a file
 home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.s:
+	$(MAKE) -f CMakeFiles/Creator-xor.dir/build.make CMakeFiles/Creator-xor.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.s
+	$(MAKE) -f CMakeFiles/Creator-fastlz.dir/build.make CMakeFiles/Creator-fastlz.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.s
 	$(MAKE) -f CMakeFiles/Creator.dir/build.make CMakeFiles/Creator.dir/home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.s
 .PHONY : home/knepsi/Projects/praktikum-rechennetze/contiki-otap/diff/minidiff/bsdiff.c.s
 
@@ -210,9 +302,17 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... rebuild_cache"
 	@echo "... edit_cache"
+	@echo "... Creator-xor"
+	@echo "... rebuild_cache"
+	@echo "... Creator-fastlz"
 	@echo "... Creator"
+	@echo "... creator-fastlz.o"
+	@echo "... creator-fastlz.i"
+	@echo "... creator-fastlz.s"
+	@echo "... creator-xor.o"
+	@echo "... creator-xor.i"
+	@echo "... creator-xor.s"
 	@echo "... creator.o"
 	@echo "... creator.i"
 	@echo "... creator.s"
