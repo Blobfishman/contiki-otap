@@ -51,6 +51,10 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+*.cooja
+*.sky
+*/build/*
+*.z1
 .clangd/
 .nvimrc
 .vscode/
@@ -76,3 +80,5 @@ build
 Creator
 Creator-fastlz
 Creator-xor
+.vscode
+.clangd

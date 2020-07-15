@@ -45,18 +45,26 @@ static struct simple_udp_connection udp_conn;
 PROCESS(udp_server_process, "UDP server");
 AUTOSTART_PROCESSES(&udp_server_process);
 /*---------------------------------------------------------------------------*/
-static void udp_rx_callback(struct simple_udp_connection *c,
-                            const uip_ipaddr_t *sender_addr,
-                            uint16_t sender_port,
-                            const uip_ipaddr_t *receiver_addr,
-                            uint16_t receiver_port, const uint8_t *data,
-                            uint16_t datalen) {
-  LOG_INFO("Received request '%.*s' from ", datalen, (char *)data);
+static void
+udp_rx_callback(struct simple_udp_connection *c,
+         const uip_ipaddr_t *sender_addr,
+         uint16_t sender_port,
+         const uip_ipaddr_t *receiver_addr,
+         uint16_t receiver_port,
+         const uint8_t *data,
+         uint16_t datalen)
+{
+
+  LOG_INFO_("[Packet Log] Message: '%.*s' received on ", datalen, (char *) data);
+  LOG_INFO_6ADDR(receiver_addr);
+  LOG_INFO_(" Port %u", receiver_port);
+  LOG_INFO_(" from ");
   LOG_INFO_6ADDR(sender_addr);
+  LOG_INFO_(" Port %u", sender_port);
   LOG_INFO_("\n");
+
 #if WITH_SERVER_REPLY
   /* send back the same string to the client as an echo reply */
-  LOG_INFO("Sending response.\n");
   simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
 #endif /* WITH_SERVER_REPLY */
 }
