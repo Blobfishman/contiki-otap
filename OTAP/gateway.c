@@ -171,7 +171,7 @@ udp_rx_callback(struct simple_udp_connection *c,
        fixArray(i);
        return;
      }
-     if(currrent_neigh_pos == 1) {
+     if(currrent_neigh_pos == 0) {
        reset();
      }
    i++;
@@ -181,6 +181,9 @@ udp_rx_callback(struct simple_udp_connection *c,
   if(data[0] == 'N') {
     int num;
     memcpy(&num, data + sizeof(char),  sizeof(int));
+    if(num > count) {
+      return;
+    }
     int k;
     for(k = 0; k < currrent_neigh_pos; k++) {
       if(uip_ip6addr_cmp(&neighbor_addr[k],&(*sender_addr)) ) {
@@ -204,7 +207,7 @@ udp_rx_callback(struct simple_udp_connection *c,
     }
   }
 
-  
+
 
 }
 
@@ -268,7 +271,7 @@ PROCESS_THREAD(broadcast, ev, data)
     while(1) {
       k++;
       //LOG_INFO("VALUE OF k %d \n" , k);
-      if(k % 20 == 0 && currrent_neigh_pos == 0) {
+      if(k % 40 == 0 && currrent_neigh_pos == 0) {
         reset();
         LOG_INFO("RESENDING BROADCAST \n");
         printf("Buffer value is ''%s' \n" ,buffer);
