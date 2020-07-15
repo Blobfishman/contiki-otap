@@ -1,0 +1,8 @@
+1) In sensniff.c, set channel manually (here: 26)
+2) Set the two parameters "true" for virtualization in sensniff.py
+3) Use socat to open bridge (SERIAL PORT Server in cooja):
+	socat pty,rawer tcp:localhost:60006
+		or
+	sudo socat pty,link=/dev/testty,raw tcp:localhost:60006
+4) Listen and believe:
+	sudo python sensniff.py -d /dev/testty -p test2.pcap
