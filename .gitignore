@@ -55,3 +55,12 @@ dkms.conf
 *.sky
 */build/*
 *.z1
+.clangd/
+.nvimrc
+.vscode/
+compile_commands.json
+tags
+%*
+Session.vim
+.vscode
+.clangd
