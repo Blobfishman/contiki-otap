@@ -56,9 +56,10 @@ static int fsd_seek(int fd, int pos, enum SEEK_TYPE type) {
     gfilesystem.positions[fd] += pos;
     break;
   case FSD_SEEK_END:
-    gfilesystem.positions[fd] += gfilesystem.file_size[fd];
+    gfilesystem.positions[fd] = gfilesystem.files[fd] + gfilesystem.file_size[fd];
+    pos = gfilesystem.file_size[fd];
   }
-  return 0;
+  return pos;
 }
 
 static int fsd_open(unsigned char *source, unsigned int size) {
