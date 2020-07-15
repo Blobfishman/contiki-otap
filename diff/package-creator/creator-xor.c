@@ -1,7 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "../FastLZ/fastlz.h"
 #include "../minidiff/bsdiff.h"
+
+long xor_diff(char *old, long size_old, char *new, long size_new, char *patch) {
+  if (size_old > size_new) {
+    long i = 0;
+    patch = malloc(size_new);
+    for (; i < size_new; i++) {
+      patch[i] = old[i] ^ new[i];
+    }
+  } else {
+    long i = 0;
+    patch = malloc(size_new);
+    for (; i < size_old; i++) {
+      patch[i] = old[i] ^ new[i];
+    }
+    for (; i < size_new; i++) {
+      patch[i] = new[i];
+    }
+  }
+}
 
 int main(int argc, char *argv[]) {
   if (argc != 4) {
@@ -9,12 +29,12 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   FILE *inold = fopen(argv[1], "r");
-  if(!inold) {
+  if (!inold) {
     printf("opening input file (old) failed");
     return -1;
   }
   FILE *innew = fopen(argv[2], "r");
-  if(!inold) {
+  if (!inold) {
     printf("opening input file (new) failed");
     return -1;
   }
@@ -40,8 +60,8 @@ int main(int argc, char *argv[]) {
   char *patch_buff = malloc(fsize_patch_max + 1);
 
   // create diff
-  int ret = bsdiff(in_old_buff, fsize_old, in_new_buff, fsize_new, patch_buff,
-                   fsize_patch_max);
+  int ret =
+      xor_diff(in_old_buff, fsize_old, in_new_buff, fsize_new, patch_buff);
   free(in_old_buff);
   free(in_new_buff);
   if (ret == -1) {
