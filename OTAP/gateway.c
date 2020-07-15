@@ -26,6 +26,7 @@
 static int page_count =  PAGESIZE / UPDATE_PACKAGE_SIZE ;
 static struct simple_udp_connection broadcast_connection;
 static struct simple_udp_connection connection;
+static struct simple_udp_connection udp_conn;
 static uip_ipaddr_t neighbor_addr[MAX_NEIGHBOR];
 static int currrent_neigh_pos = 0;
 static int count = 2;
@@ -90,12 +91,44 @@ void fixArray(int pos) {
 
   //memset(&neighbor_addr[currrent_neigh_pos], 0 , sizeof(uip_ipaddr_t));
 }
-
+PROCESS(udp_server_process, "UDP server");
 PROCESS(broadcast, "UDP broadcast example process");
 PROCESS(test, "TEST");
 PROCESS(jitter , "jitter");
 //PROCESS(gateway_process, "Gateway");
-AUTOSTART_PROCESSES(&test);
+AUTOSTART_PROCESSES(&test, &udp_server_process);
+
+/*---------------------------------------------------------------------------*/
+static void
+udp_rx_callback_rpl(struct simple_udp_connection *c,
+         const uip_ipaddr_t *sender_addr,
+         uint16_t sender_port,
+         const uip_ipaddr_t *receiver_addr,
+         uint16_t receiver_port,
+         const uint8_t *data,
+         uint16_t datalen)
+{
+  LOG_INFO("Received request '%.*s' from ", datalen, (char *) data);
+  LOG_INFO_6ADDR(sender_addr);
+  LOG_INFO_("\n");
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(udp_server_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  /* Initialize DAG root */
+  NETSTACK_ROUTING.root_start();
+
+  /* Initialize UDP connection */
+  simple_udp_register(&udp_conn, UDP_SERVER_PORT, NULL,
+                      UDP_CLIENT_PORT, udp_rx_callback_rpl);
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+
+
 /*---------------------------------------------------------------------------*/
 static void
 udp_rx_callback(struct simple_udp_connection *c,

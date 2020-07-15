@@ -40,11 +40,15 @@
 #include "sys/log.h"
 #include <stdio.h>
 #include <string.h>
-
+#include "net/netstack.h"
+#include "net/routing/routing.h"
 
 #define PAGESIZE 10
 #define UDP_PORT_BROADCAST 1234
 #define UDP_PORT_UNICAST 2222
+#define UDP_CLIENT_PORT	8765
+#define UDP_SERVER_PORT	5678
+static struct simple_udp_connection udp_conn;
 static struct simple_udp_connection broadcast_connection;
 static struct simple_udp_connection connection;
 
@@ -86,8 +90,8 @@ static char mode = '0';
 //mode 0 = no update , mode 1 = update
 //static char mode = 0
 PROCESS(broadcast_example_process, "UDP broadcast example process");
-
-AUTOSTART_PROCESSES(&broadcast_example_process);
+PROCESS(udp_client_process, "UDP client");
+AUTOSTART_PROCESSES(&broadcast_example_process, &udp_client_process);
 static char file[PAGESIZE];
 static int fp = 0;
 
@@ -355,9 +359,10 @@ receiver(struct simple_udp_connection *c,
           simple_udp_sendto(&connection, data, datalen, &neighbor_addr[i]);
           i++;
         }
-
-      }
       retransmit_enable = '1';
+    } else {
+        retransmit_enable = '0';
+    }
     }
 
 
@@ -383,7 +388,12 @@ receiver(struct simple_udp_connection *c,
       snprintf(file + (sequence_num * size), size + 1 , "%s" , data + 1 + sizeof(sequence_num));
       // every sequence_num received
       if(count_received == amount) {
-        send_n = '1';
+        if(currrent_neigh_pos == 0) {
+            send_n = '1';
+
+        } else {
+          retransmit_enable = '0';
+        }
         int amount;
         int sequence_num = 0;
         int dummy_fp = 0;
@@ -467,7 +477,7 @@ receiver(struct simple_udp_connection *c,
             break;
           }
         }
-        rt_mode = '1';
+        rt_mode = '0';
         return;
       }
       retransmit_enable = '0';
@@ -654,7 +664,42 @@ PROCESS_THREAD(broadcast_example_process, ev, data)
   PROCESS_END();
 }
 
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(udp_client_process, ev, data)
+{
+  static struct etimer periodic_timer;
+  static unsigned count;
+  static char str[32];
+  uip_ipaddr_t dest_ipaddr;
 
+  PROCESS_BEGIN();
 
+  /* Initialize UDP connection */
+  simple_udp_register(&udp_conn, UDP_CLIENT_PORT, NULL,
+                      UDP_SERVER_PORT, NULL);
 
+  etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+
+    if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
+      /* Send to DAG root */
+      LOG_INFO("Sending request %u to ", count);
+      LOG_INFO_6ADDR(&dest_ipaddr);
+      LOG_INFO_("\n");
+      snprintf(str, sizeof(str), "hello %d", count);
+      uip_create_linklocal_allnodes_mcast(&dest_ipaddr);
+      simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
+      count++;
+    } else {
+      LOG_INFO("Not reachable yet\n");
+    }
+
+    /* Add some jitter */
+    etimer_set(&periodic_timer, SEND_INTERVAL
+      - CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)));
+  }
+
+  PROCESS_END();
+}
 /*---------------------------------------------------------------------------*/
