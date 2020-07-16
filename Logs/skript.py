@@ -8,9 +8,11 @@ import sys
 import numpy as np
 
 server = 0
+node_number = 0
 dictionary_all = {}
 dictionary_times = {}
 dictionary_energy = {}
+array_paketlost = []
 
 def plot():
     
@@ -34,7 +36,7 @@ def plot():
         radio_off.append(tmp[5])
 
     fig = plt.figure(constrained_layout=True)
-    gs = gridspec.GridSpec(6,3, figure= fig)
+    gs = gridspec.GridSpec(7,3, figure= fig)
     
     ax1_1 = fig.add_subplot(gs[0,0])
     ax1_1.bar(np.arange(len(cpu_on)),cpu_on, align='center')
@@ -60,24 +62,34 @@ def plot():
     ax2_3.bar(np.arange(len(radio_off)),radio_off, align='center')
     ax2_3.set_title('RADIO OFF')
     
-    ax_box = fig.add_subplot(gs[2:,:])
+    ax_box = fig.add_subplot(gs[2:5,:])
     ax_box.boxplot(dictionary_times.values())
     ax_box.set_title('RTTs')
+
+    ax_lost = fig.add_subplot(gs[6:,:])
+    ax_lost.bar(np.arange(len(array_paketlost)), array_paketlost, align='center')
+    ax_lost.set_title('paketlost')
     
     plt.show()
 
 
-def parser(logfile, server, node_number):
+def parser(logfile):
+    global server
+    global node_number
     global dictionary_all
     global dictionary_times
     global dictionary_energy
+    global array_paketlost  
 
     dictionary_times = {new_list: [] for new_list in range(node_number)}
     dictionary_energy = {new_list: [] for new_list in range(node_number)}
     dictionary_all = {new_list: [] for new_list in range(node_number)}
-    
+    array_paketlost = [0] * node_number
+
     cpu_time_tmp = 0
     data_time_tmp = 0
+    data_tmp = 0
+    cpu_tmp = 0
     
     app_regex = r"\[INFO:\s+App\s+\]" 
     cpu_sending_regex = r'Sending CPU'
@@ -106,15 +118,31 @@ def parser(logfile, server, node_number):
         if int(k) == (server - 1):
             continue
         for i in v:
-            if re.search(data_sending_regex, i) is not None and data_send == False:
+            if re.search(data_sending_regex, i) is not None:
                 x = re.findall(r'\d+', i)
-                data_send = True
-                data_time_tmp = int(x[0])
-            
-            elif re.search(cpu_sending_regex, i) is not None and cpu_send == False:
+                if data_send == True and (data_tmp != int(x[2])):
+                    array_paketlost[k] += 1
+                    data_send = True
+                    data_time_tmp = int(x[0])
+                    data_tmp = int(x[2])
+                elif data_send == False:
+                    data_send = True
+                    data_time_tmp = int(x[0])
+                    data_tmp = int(x[2])
+                    
+            elif re.search(cpu_sending_regex, i) is not None:
                 x = re.findall(r'\d+', i)
-                cpu_send = True
-                cpu_time_tmp = int(x[0])
+                if cpu_send == True and (cpu_tmp != int(x[2])):
+                    array_paketlost[k] += 1
+                    cpu_send = True
+                    cpu_time_tmp = int(x[0])
+                    # check mit LPM
+                    cpu_tmp = int(x[3])
+                elif cpu_send == False:
+                    cpu_send = True
+                    cpu_time_tmp = int(x[0])
+                    # check mit LPM
+                    cpu_tmp = int(x[3])
 
             elif re.search(data_received_regex, i) is not None and data_send == True:
                 x = re.findall(r'\d+', i)
@@ -138,12 +166,13 @@ def parser(logfile, server, node_number):
 
 def main(args):
     global server
+    global node_number
     if len(sys.argv) != 4:
         print("Error: use ./skript.py <Logfile> <Server_ID> <Number_of_Nodes>")
     logfile = str(sys.argv[1])
     server = int(sys.argv[2])
     node_number = int(sys.argv[3])
-    parser(logfile,server,node_number)
+    parser(logfile)
     plot()
 
 

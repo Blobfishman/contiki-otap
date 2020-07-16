@@ -58,9 +58,9 @@ static struct simple_udp_connection udp_rx_rpl_conn;
 
 NBR_TABLE_GLOBAL(struct nbr_stats, transmit_rates_table);
 
-static unsigned long to_seconds(uint64_t time) {
-    return (unsigned long)(time / ENERGEST_SECOND);
-}
+/* static unsigned long to_seconds(uint64_t time) { */
+/*     return (unsigned long)(time / ENERGEST_SECOND); */
+/* } */
 
 PROCESS(udp_server_process, "UDP server");
 AUTOSTART_PROCESSES(&udp_server_process);
@@ -79,15 +79,15 @@ void transmit_rate_callback(void *ptr){
         }
         /* transmit_rate = &tmp; */
         uip_ipaddr_t *receiver_ipaddr =  rpl_neighbor_get_ipaddr(nbr);
-        LOG_INFO("Transmitrate: %ds from ", stats->tx_time);
-        LOG_INFO_6ADDR(receiver_ipaddr);
-        LOG_INFO_("\n");
+        /* LOG_INFO("Transmitrate: %ds from ", stats->tx_time); */
+        /* LOG_INFO_6ADDR(receiver_ipaddr); */
+        /* LOG_INFO_("\n"); */
         
-        const struct link_stats *link;
-        link = link_stats_from_lladdr(rpl_neighbor_get_lladdr(nbr));
-        LOG_INFO("etx: %d, rssi: %d from ", link->etx, link->rssi);
-        LOG_INFO_6ADDR(receiver_ipaddr);
-        LOG_INFO_("\n");
+        /* const struct link_stats *link; */
+        /* link = link_stats_from_lladdr(rpl_neighbor_get_lladdr(nbr)); */
+        /* LOG_INFO("etx: %d, rssi: %d from ", link->etx, link->rssi); */
+        /* LOG_INFO_6ADDR(receiver_ipaddr); */
+        /* LOG_INFO_("\n"); */
 
         simple_udp_sendto(&udp_tx_rpl_conn, str, strlen(str), receiver_ipaddr);
         nbr = nbr_table_next(rpl_neighbors, nbr);
@@ -131,17 +131,17 @@ static void udp_rpl_rx_callback(struct simple_udp_connection *c,
                             uint16_t receiver_port, const uint8_t *data,
                             uint16_t datalen) {
 
-    unsigned int transmit_rate = 0;
-    static char str[32];
+    static unsigned int transmit_rate = 0;
+    static char str[8];
     /* LOG_INFO("Transmitrate request from: "); */
     /* LOG_INFO_6ADDR(sender_addr); */
     /* LOG_INFO_("\n"); */
 
-    energest_flush();
-    unsigned int tranmit_time = (unsigned int)to_seconds(energest_type_time(ENERGEST_TYPE_TRANSMIT));
+    /* energest_flush(); */
+    /* unsigned int tranmit_time = (unsigned int)to_seconds(energest_type_time(ENERGEST_TYPE_TRANSMIT)); */
     /* unsigned long total_time = to_seconds(ENERGEST_GET_TOTAL_TIME()); */
 
-    transmit_rate = tranmit_time; 
+    /* transmit_rate = tranmit_time; */ 
     snprintf(str, sizeof(str), "%d", transmit_rate);
     simple_udp_sendto(&udp_rx_rpl_conn, str, strlen(str), sender_addr);
 
@@ -157,12 +157,12 @@ udp_rx_callback(struct simple_udp_connection *c,
          const uint8_t *data,
          uint16_t datalen)
 {
-  LOG_INFO("Received request '%.*s' from ", datalen, (char *) data);
-  LOG_INFO_6ADDR(sender_addr);
-  LOG_INFO_("\n");
+  /* LOG_INFO("Received request '%.*s' from ", datalen, (char *) data); */
+  /* LOG_INFO_6ADDR(sender_addr); */
+  /* LOG_INFO_("\n"); */
 #if WITH_SERVER_REPLY
   /* send back the same string to the client as an echo reply */
-  LOG_INFO("Sending response.\n");
+  /* LOG_INFO("Sending response.\n"); */
   simple_udp_sendto(&udp_conn, data, datalen, sender_addr);
 #endif /* WITH_SERVER_REPLY */
 }
