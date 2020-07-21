@@ -5,7 +5,7 @@
 #include "net/nbr-table.h"
 
 struct nbr_stats{
-    uint16_t cpu_time;
+    /* uint16_t cpu_time; */
     uint16_t tx_time;
 };
 

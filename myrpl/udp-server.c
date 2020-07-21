@@ -35,7 +35,6 @@
 #include "net/nbr-table.h"
 #include "net/routing/rpl-lite/rpl-neighbor.h"
 #include "net/link-stats.h"
-#include "random.h"
 
 #include "myrpl_conf.h"
 
@@ -102,13 +101,13 @@ static void udp_rpl_tx_callback(struct simple_udp_connection *c,
                             uint16_t receiver_port, const uint8_t *data,
                             uint16_t datalen) {
 
-    /* LOG_INFO("Received trasmitrate '%.*s' from ", datalen, (char *)data); */
-    /* LOG_INFO_6ADDR(sender_addr); */
-    /* LOG_INFO_("\n"); */
-    unsigned int data_num = 0;
-    unsigned int base = 1;
-    int i;
-    for(i = 0; i < datalen; i++){
+    LOG_INFO("Received trasmitrate '%.*s' from ", datalen, (char *)data);
+    LOG_INFO_6ADDR(sender_addr);
+    LOG_INFO_("\n");
+    unsigned short data_num = 0;
+    unsigned short base = 1;
+    short i;
+    for(i = 0; i < datalen; ++i){
         data_num *= base;
         data_num += (*data - 48);
         base *= 10;
@@ -131,7 +130,7 @@ static void udp_rpl_rx_callback(struct simple_udp_connection *c,
                             uint16_t receiver_port, const uint8_t *data,
                             uint16_t datalen) {
 
-    static unsigned int transmit_rate = 0;
+    /* static unsigned int transmit_rate = 0; */
     static char str[8];
     /* LOG_INFO("Transmitrate request from: "); */
     /* LOG_INFO_6ADDR(sender_addr); */
@@ -142,7 +141,7 @@ static void udp_rpl_rx_callback(struct simple_udp_connection *c,
     /* unsigned long total_time = to_seconds(ENERGEST_GET_TOTAL_TIME()); */
 
     /* transmit_rate = tranmit_time; */ 
-    snprintf(str, sizeof(str), "%d", transmit_rate);
+    snprintf(str, sizeof(str), "%d", 0);
     simple_udp_sendto(&udp_rx_rpl_conn, str, strlen(str), sender_addr);
 
 }
@@ -175,16 +174,13 @@ PROCESS_THREAD(udp_server_process, ev, data)
   NETSTACK_ROUTING.root_start();
 
   /* Initialize UDP connection */
-  simple_udp_register(&udp_tx_rpl_conn, UDP_RPL_CLIENT_PORT, NULL, UDP_RPL_SERVER_PORT,
-                      udp_rpl_tx_callback);
-  simple_udp_register(&udp_rx_rpl_conn, UDP_RPL_SERVER_PORT, NULL, UDP_RPL_CLIENT_PORT,
-                      udp_rpl_rx_callback);
-  simple_udp_register(&udp_conn, UDP_SERVER_PORT, NULL,
-                      UDP_CLIENT_PORT, udp_rx_callback);
+  simple_udp_register(&udp_tx_rpl_conn, UDP_RPL_CLIENT_PORT, NULL, UDP_RPL_SERVER_PORT, udp_rpl_tx_callback);
+  simple_udp_register(&udp_rx_rpl_conn, UDP_RPL_SERVER_PORT, NULL, UDP_RPL_CLIENT_PORT, udp_rpl_rx_callback);
+  simple_udp_register(&udp_conn, UDP_SERVER_PORT, NULL, UDP_CLIENT_PORT, udp_rx_callback);
     
   nbr_table_register(transmit_rates_table, NULL);
   
-  ctimer_set(&timer_transmit, 5 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), transmit_rate_callback, NULL);
+  ctimer_set(&timer_transmit, 5 * CLOCK_SECOND, transmit_rate_callback, NULL);
 
   PROCESS_END();
 }

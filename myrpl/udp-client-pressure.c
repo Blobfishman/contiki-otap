@@ -71,7 +71,7 @@ void energy_callback(void *ptr) {
 
 void app_callback(void *ptr) {
     static char str[32];
-    static int pressure = 1000;
+    static unsigned int pressure = 1000;
     /* rearm the ctimer */
     ctimer_reset(&timer_app);
     if(pressure == 1101){
@@ -95,7 +95,6 @@ void transmit_rate_callback(void *ptr){
     ctimer_reset(&timer_transmit);
     static char str[] = "transmit";
     struct nbr_stats* stats;
-    /* uint16_t tmp = 0; */
 
     rpl_nbr_t *nbr = nbr_table_head(rpl_neighbors);
     while (nbr != NULL){
@@ -103,17 +102,16 @@ void transmit_rate_callback(void *ptr){
         if(stats == NULL){
             stats = nbr_table_add_lladdr(transmit_rates_table, rpl_neighbor_get_lladdr(nbr), NBR_TABLE_REASON_UNDEFINED, NULL);
         }
-        /* transmit_rate = &tmp; */
         uip_ipaddr_t *receiver_ipaddr =  rpl_neighbor_get_ipaddr(nbr);
-        /* LOG_INFO("Transmitrate: %ds from ", stats->tx_time); */
+        /* LOG_INFO("Transmitrate: %i from ", stats->tx_time); */
         /* LOG_INFO_6ADDR(receiver_ipaddr); */
         /* LOG_INFO_("\n"); */
         
-        /* const struct link_stats *link; */
-        /* link = link_stats_from_lladdr(rpl_neighbor_get_lladdr(nbr)); */
-        /* LOG_INFO("etx: %d, rssi: %d from ", link->etx, link->rssi); */
-        /* LOG_INFO_6ADDR(receiver_ipaddr); */
-        /* LOG_INFO_("\n"); */
+        const struct link_stats *link;
+        link = link_stats_from_lladdr(rpl_neighbor_get_lladdr(nbr));
+        LOG_INFO("etx: %d, rssi: %d from ", link->etx, link->rssi);
+        LOG_INFO_6ADDR(receiver_ipaddr);
+        LOG_INFO_("\n");
 
         simple_udp_sendto(&udp_tx_rpl_conn, str, strlen(str), receiver_ipaddr);
         nbr = nbr_table_next(rpl_neighbors, nbr);
@@ -128,12 +126,12 @@ static void udp_rpl_tx_callback(struct simple_udp_connection *c,
                             uint16_t receiver_port, const uint8_t *data,
                             uint16_t datalen) {
 
-    /* LOG_INFO("Received trasmitrate '%.*s' from ", datalen, (char *)data); */
-    /* LOG_INFO_6ADDR(sender_addr); */
-    /* LOG_INFO_("\n"); */
-    unsigned int data_num = 0;
-    unsigned int base = 1;
-    int i;
+    LOG_INFO("Received trasmitrate '%.*s' from ", datalen, (char *)data);
+    LOG_INFO_6ADDR(sender_addr);
+    LOG_INFO_("\n");
+    unsigned short data_num = 0;
+    unsigned short base = 1;
+    short i;
     for(i = 0; i < datalen; i++){
         data_num *= base;
         data_num += (*data - 48);
@@ -145,9 +143,6 @@ static void udp_rpl_tx_callback(struct simple_udp_connection *c,
     rpl_nbr_t *nbr = rpl_neighbor_get_from_ipaddr((uip_ipaddr_t*)sender_addr);
     stats = nbr_table_get_from_lladdr(transmit_rates_table,rpl_neighbor_get_lladdr(nbr));
     stats->tx_time = data_num;
-    /* LOG_INFO("Transmitrate: %d from ", stats->tx_time); */
-    /* LOG_INFO_6ADDR(sender_addr); */
-    /* LOG_INFO_("\n"); */
 }
 
 static void udp_rpl_rx_callback(struct simple_udp_connection *c,
@@ -157,18 +152,12 @@ static void udp_rpl_rx_callback(struct simple_udp_connection *c,
                             uint16_t receiver_port, const uint8_t *data,
                             uint16_t datalen) {
 
-    unsigned int transmit_rate = 0;
+    int16_t transmit_rate = 0;
     static char str[32];
-    /* LOG_INFO("Transmitrate request from: "); */
-    /* LOG_INFO_6ADDR(sender_addr); */
-    /* LOG_INFO_("\n"); */
 
     energest_flush();
-    float tranmit_time = (float)to_seconds(energest_type_time(ENERGEST_TYPE_TRANSMIT));
-    float total_time = (float)to_seconds(ENERGEST_GET_TOTAL_TIME()); 
-    /* unsigned long total_time = to_seconds(ENERGEST_GET_TOTAL_TIME()); */
 
-    transmit_rate = (unsigned short)((tranmit_time*1000)/total_time); 
+    transmit_rate = (unsigned short)((to_seconds(energest_type_time(ENERGEST_TYPE_TRANSMIT))*1000)/to_seconds(ENERGEST_GET_TOTAL_TIME()));
     snprintf(str, sizeof(str), "%d", transmit_rate);
     simple_udp_sendto(&udp_rx_rpl_conn, str, strlen(str), sender_addr);
 
@@ -206,7 +195,7 @@ PROCESS_THREAD(udp_client_process, ev, data) {
 
     ctimer_set(&timer_energy, 10 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), energy_callback, NULL);
     ctimer_set(&timer_app, 3 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), app_callback, NULL);
-    ctimer_set(&timer_transmit, 5 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), transmit_rate_callback, NULL);
+    ctimer_set(&timer_transmit, 5 * CLOCK_SECOND, transmit_rate_callback, NULL);
     PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
