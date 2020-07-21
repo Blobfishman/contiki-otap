@@ -24,8 +24,14 @@ class Item:
         self.lowpan_size = lowpan
         self.ether_size = ether
 
+    def overhead(self):
+        return self.icmp_size + self.udp_size + self.ip_size + self.lowpan_size + self.ether_size
 
-def generateDiagrams(input_file, output_file, only_packets, only_traffic): 
+    def total(self):
+        return self.overhead() + self.payload_size
+
+
+def generateDiagrams(input_file, output_file, mode): 
 
     start_time = 0
 
@@ -88,6 +94,8 @@ def generateDiagrams(input_file, output_file, only_packets, only_traffic):
     ip_list = []
     lowpan_list = []
     ether_list = []
+    overhead_list = []
+    percentage_list = []
 
     for i in range(0, max_time):
         time_list.append(i)
@@ -98,6 +106,8 @@ def generateDiagrams(input_file, output_file, only_packets, only_traffic):
             ip_list.append(evaluation[i].ip_size)
             lowpan_list.append(evaluation[i].lowpan_size)
             ether_list.append(evaluation[i].ether_size)
+            overhead_list.append(evaluation[i].overhead())
+            percentage_list.append(float(evaluation[i].payload_size) / float(evaluation[i].total()))
         else:
             payload_list.append(0)
             icmp_list.append(0)
@@ -105,15 +115,26 @@ def generateDiagrams(input_file, output_file, only_packets, only_traffic):
             ip_list.append(0)
             lowpan_list.append(0)
             ether_list.append(0)
-
-    labels = ["802.15.4", "6LoWPAN", "IPv6", "UDP", "ICMP", "Data"]
+            overhead_list.append(0)
+            percentage_list.append(0)
 
     fig, ax1 = plt.subplots()
     ax1.set_xlabel('time (s)')
-#    ax1.set_yabel('traffic (byte/s')
+
+    if mode == "sum_overhead":
+        labels = ["Header", "Data"]
+        ax1.stackplot(time_list, overhead_list, payload_list, labels=labels)
+    elif mode == "percentage":
+        ax1.stackplot(time_list, percentage_list)
+    else:    
+        labels = ["802.15.4", "6LoWPAN", "IPv6", "UDP", "ICMP", "Data"]
+        ax1.stackplot(time_list, ether_list, lowpan_list, ip_list, udp_list, icmp_list, payload_list, labels=labels)
+
     ax1.tick_params(axis='y')
-    
-    ax1.stackplot(time_list, ether_list, lowpan_list, ip_list, udp_list, icmp_list, payload_list, labels=labels)
+    if mode == "percentage":
+        ax1.set_ylabel('use data proportion')    
+    else:
+        ax1.set_ylabel('traffic (byte/s)')
     ax1.legend(loc='best')
     fig.tight_layout()
     plt.show()
@@ -122,15 +143,15 @@ def generateDiagrams(input_file, output_file, only_packets, only_traffic):
     
 
 if len(sys.argv) < 3:
-    print('usage: ' + sys.argv[0] + ' pcap_file output_file [--only-packets//--only-traffic]')
+    print('usage: ' + sys.argv[0] + ' pcap_file output_file [--sum-overhead//--use-data-percentage]')
     exit(0)
 
-only_packets = False
-only_traffic = False
+mode = 'detailed'
 if len(sys.argv) > 3:
-    if "-only-packets" in sys.argv[3] or "-packets-only" in sys.argv[3]:
-        only_packets = True
-    if "-only-traffic" in sys.argv[3] or "-traffic-only" in sys.argv[3]:
-        only_traffic = True
+    if "-sum-overhead" in sys.argv[3] or "-overhead_sum" in sys.argv[3]:
+        mode = "sum_overhead"
+    elif "-percentage" in sys.argv[3]:
+        mode = "percentage"
 
-generateDiagrams(sys.argv[1], sys.argv[2], only_packets, only_traffic)
+
+generateDiagrams(sys.argv[1], sys.argv[2], mode)
