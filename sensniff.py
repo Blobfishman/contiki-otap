@@ -319,7 +319,7 @@ class FifoOutHandler(object):
             self.of = os.fdopen(fd, 'wb')
         except OSError as e:
             if e.errno == errno.ENXIO:
-                logger.warn('Remote end not reading')
+#                logger.warn('Remote end not reading')
                 stats['Not Piped'] += 1
                 self.of = None
                 self.needs_pcap_hdr = True
