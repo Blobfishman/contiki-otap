@@ -1,3 +1,9 @@
 [submodule "contiki-ng"]
 	path = contiki-ng
 	url = https://github.com/contiki-ng/contiki-ng.git
+[submodule "diff/minidiff"]
+	path = diff/minidiff
+	url = https://github.com/thoughtpolice/minibsdiff.git
+[submodule "diff/FastLZ"]
+	path = diff/FastLZ
+	url = https://github.com/ariya/FastLZ.git
