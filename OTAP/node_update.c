@@ -44,7 +44,7 @@
 #include "net/routing/routing.h"
 #include "net/ipv6/simple-udp.h"
 
-#define PAGESIZE 250
+#define PAGESIZE 200
 #define UDP_PORT_BROADCAST 1234
 #define UDP_PORT_UNICAST 2222
 #define UDP_CLIENT_PORT	8765
@@ -55,49 +55,64 @@ static struct simple_udp_connection connection;
 
 //lists for storing adresses where data is sent to , maybe cut for real lists
 #define MAX_NEIGHBOR 8
-static int page = 0;
-static  uip_ipaddr_t parent_addr ;
-static char received_n_from[MAX_NEIGHBOR];
-static char rt_mode = '0';
 static  uip_ipaddr_t neighbor_addr[MAX_NEIGHBOR];
+//parent addr
+static  uip_ipaddr_t parent_addr ;
+static int page = 0;
+
+//store how many neighbors want next package
+// when all received send to parent
+static char received_n_from[MAX_NEIGHBOR];
+
+//retransmit mode
+static char rt_mode = '0';
+
 static int currrent_neigh_pos = 0;
+
+// used to sore size and amount of packages
 static int count = 0;
 static int size = 0;
-static int j = 0;
+static int amount_page_received = 0;
+//
 static int rt_val = 0;
 static int count_received = 0;
 static int count_n_received_from = 0;
-static int amount_page_received = 0;
+
 static char retransmit_enable = '0';
 static char send_n = '0';
 static int s;
 static char seq_receieved[PAGESIZE]  = {"0"};
 // timer to wait for events
-#define SEND_INTERVAL		(16 * CLOCK_SECOND)
+#define SEND_INTERVAL		(2 * CLOCK_SECOND)
 #define SEND_TIME		(random_rand() % (SEND_INTERVAL))
+
 
 // debuggginginfo
 #define LOG_MODULE "App"
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 static char parent_is_null =  '1';
-// store if parent needs update, why is this important tho?
+// store if parent needs updat
 static char parent_required = 0;
 static char required[1];
 
+// own id and version
 static char SOFTWARE_ID[10] = {"1.001.08\0"};
 static char SOFTWARE_VERSION[14] = {"1.001.000.11\0"};
+//custom rom since we cant write into real rom
 static char ROM[500];
 static int rom_p = 0;
+
 static char mode = '0';
 //mode 0 = no update , mode 1 = update
-//static char mode = 0
+
+
 PROCESS(broadcast_example_process, "UDP broadcast example process");
 PROCESS(udp_client_process, "UDP client");
-AUTOSTART_PROCESSES(&broadcast_example_process, &udp_client_process);
+AUTOSTART_PROCESSES(&udp_client_process,&broadcast_example_process);
 static char file[PAGESIZE];
 static int fp = 0;
-
+// reset after receiving update and not having neighbor
 void reset() {
   //LOG_INFO("reset called \n");
   retransmit_enable = '0';
@@ -120,6 +135,7 @@ void reset() {
   amount_page_received = 0;
   count_n_received_from = 0;
 }
+//delete neighbor after r0
 void fixArray(int pos) {
   int j;
   j = pos;
@@ -166,7 +182,7 @@ void handleAdvertisementPackage(char* src, const uip_ipaddr_t send_addr) {
     }
     //copy sender addr to parent
     uip_ip6addr_copy(&parent_addr,&send_addr);
-    simple_udp_sendto(&connection, "IP", sizeof("IP"), &parent_addr);
+
 
       //check if update on node is needed,
          if(strncmp(SOFTWARE_ID,update_softwareid,8) == 0) {
@@ -228,7 +244,7 @@ receiver(struct simple_udp_connection *c,
 
 
   // upong reciving IP package store neighbor in list if it fits
-  //TODO adjust  array so that after deleting element another one can be stored
+
   if(data[0] == 'I' && data[1] == 'P') {
     if(uip_ip6addr_cmp(&parent_addr , sender_addr)) {
       return;
@@ -271,9 +287,10 @@ receiver(struct simple_udp_connection *c,
     if((currrent_neigh_pos) != 0) {
       return;
     }
+    //if update received and no more neighbors -> transmit R0
     if(amount_page_received == count) {
       int i;
-      for (i = 0 ;i < 10 ; i++) {
+      for (i = 0 ;i < 1 ; i++) {
         simple_udp_sendto(&connection, "R0" , sizeof("R0"), &parent_addr);
       }
       reset();
@@ -338,11 +355,13 @@ receiver(struct simple_udp_connection *c,
 
     //update_package -> if needed apply if not retransmit to neighbors
     if(data[0] == 'U') {
+      // alrleady received
       if(size !=0 && count != 0) {
         mode = '0';
         return;
       }
       mode = '0';
+      //always sebd retransmit if first package not received
       retransmit_enable = '1';
       memcpy(&size, data + 1 , sizeof(size));
       memcpy(&count, data + 1 + sizeof(count) , sizeof(size));
@@ -358,13 +377,14 @@ receiver(struct simple_udp_connection *c,
     }
     }
 
-
+    // this is one package from update
     if(data[0] == 'S') {
       send_n = '0';
       retransmit_enable = '0';
       unsigned const  char * d = data;
       int pg;
       memcpy(&pg, d + 1, sizeof(int));
+      //not the right page
       if(pg != amount_page_received + 1) {
         return;
       }
@@ -399,7 +419,7 @@ receiver(struct simple_udp_connection *c,
         }
       }
       //LOG_INFO("count_received %d amoun : %d and page %d and count %d and amount_page_received %d \n",count_received, amount, *(d + 1),count, amount_page_received);
-      // every sequence_num received
+      // every sequence_num received -> send to neighbor
       if(count_received == amount) {
         retransmit_enable = '0';
         memset(seq_receieved, '0', sizeof(seq_receieved));
@@ -436,7 +456,7 @@ receiver(struct simple_udp_connection *c,
             rom_p += PAGESIZE;
           }
 
-          //reset Pagebuffer
+          //all pages received -> finished
           if(count == amount_page_received) {
             send_n = '0';
             retransmit_enable = '0';
@@ -455,10 +475,8 @@ receiver(struct simple_udp_connection *c,
             }
             }
             if(currrent_neigh_pos == 0) {
-              int i;
-              for (i = 0 ;i < 10 ; i++) {
+
                 simple_udp_sendto(&connection, "R0" , sizeof("R0"), &parent_addr);
-              }
 
               reset();
               amount_page_received = 0;
@@ -484,7 +502,8 @@ receiver(struct simple_udp_connection *c,
         retransmit_enable = '1';
 
     }
-    //retransmit N to parent since we should have completed the page already
+    //next package -> retransmit if no neighbor or n
+    // received by every neighbor
     if(data[0] == 'N') {
       //LOG_INFO("N received \n");
       int pg;
@@ -567,7 +586,7 @@ receiver(struct simple_udp_connection *c,
       count_n_received_from = 0;
     }
 
-
+    //retransmit package -> if have page send to sender
     if(data[0] == 'R'  && data[1] == 'T') {
       int p;
       memcpy(&p, data + 2, sizeof(p));
@@ -582,7 +601,7 @@ receiver(struct simple_udp_connection *c,
            break;
          }
        }
-
+       // already have this page -> send to neighbor
       if(p == amount_page_received) {
           ////LOG_INFO("Set rt1");
           //LOG_INFO("page retransmitting %d \n", p);
@@ -607,13 +626,7 @@ receiver(struct simple_udp_connection *c,
 
           }
       } else {
-        return;
-        if(amount_page_received + 1 == p) {
-        char response[sizeof(int) + 10] = {"RT"};
-        memcpy(response + 2 ,&p, sizeof(int));
-        simple_udp_sendto(&connection, response ,sizeof(response), &parent_addr);
-        ////////LOG_INFO("Dont have this page yet \n");
-        }
+        // dont have this page
         return;
       }
     }
@@ -638,6 +651,7 @@ PROCESS_THREAD(broadcast_example_process, ev, data)
   //timer for delay
   etimer_set(&periodic_timer, SEND_INTERVAL);
     while(1) {
+    etimer_set(&periodic_timer, SEND_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
     etimer_reset(&periodic_timer);
 
@@ -646,22 +660,15 @@ PROCESS_THREAD(broadcast_example_process, ev, data)
     //simple_udp_sendto(&broadcast_connection, "Test", 4, &addr
 
     // Periodically log neighbor and parent list
-    int i = 0;
-    while(i < currrent_neigh_pos) {
-      ////LOG_INFO("Neighbors of this node are :");
-      ////LOG_INFO_6ADDR(&neighbor_addr[i]);
-      i++;
-    }
+
    //////LOG_INFO("Parent of this node is :");
    //  ////////LOG_INFO_6ADDR(&parent_addr);
    //  ////////LOG_INFO("\n");
-    if(j % 20 == 0 ) {
-      ////LOG_INFO("\n");
-      ////////LOG_INFO("SOFTWARE_VERSION is %s \n" , SOFTWARE_VERSION );
-      ////////LOG_INFO("SOFTWARE_ID is %s \n" , SOFTWARE_ID);
-    }
-    // sending denyResponse if neighborlist is empty after specific time period
+
+    // send the retransmit package
     if(retransmit_enable == '1') {
+      //etimer_set(&periodic_timer, SEND_INTERVAL);
+      //PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
 
       int pg = amount_page_received + 1;
       char retransmit_request[20 + sizeof(int)] = {"RT"};
@@ -670,16 +677,19 @@ PROCESS_THREAD(broadcast_example_process, ev, data)
 
       }
         //LOG_INFO("Sending rt with page %d \n", pg);
+
+
+
       simple_udp_sendto(&connection, retransmit_request, sizeof(retransmit_request), &parent_addr);
     }
 
     if(rt_mode == '1') {
       ////LOG_INFO("IN RT \n");
       ////LOG_INFO(" page %d amount_received %d \n", page, amount_page_received)
-      etimer_set(&periodic_timer, SEND_INTERVAL );
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-      etimer_reset(&periodic_timer);
-      etimer_set(&send_timer, SEND_TIME);
+      //etimer_set(&periodic_timer, SEND_INTERVAL * 2 );
+      //PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+      //etimer_reset(&periodic_timer);
+
       if(page == (amount_page_received) && page != 0) {
 
         //wait 30 seconds till retransmit
@@ -696,6 +706,9 @@ PROCESS_THREAD(broadcast_example_process, ev, data)
           memcpy(response + 1 ,&pg, sizeof(int));
           memcpy(response + 1 + sizeof(int) ,&sequence_num, sizeof(sequence_num));
           snprintf(response + 1 +  2 * sizeof(sequence_num), size + 1, "%s", file + dummy_fp);
+
+
+
           simple_udp_sendto(&connection, response ,sizeof(response), &neighbor_addr[s]);
 
           sequence_num++;
@@ -707,33 +720,40 @@ PROCESS_THREAD(broadcast_example_process, ev, data)
 
 
 }
-
+    // retransmit n package
 	 if(send_n == '1') {
       retransmit_enable = '0';
       //LOG_INFO("Sending n \n");
-      etimer_set(&periodic_timer, SEND_INTERVAL );
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-      etimer_reset(&periodic_timer);
-      etimer_set(&send_timer, SEND_TIME);
+      //etimer_set(&periodic_timer, SEND_INTERVAL * 2);
+      //PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+      //etimer_reset(&periodic_timer);
+
       char response[1 + sizeof(int) + 30] = {"N"};
       int pg = amount_page_received + 1;
       memcpy(response + 1 ,&pg, sizeof(pg));
+
       simple_udp_sendto(&connection, response, sizeof(response), &parent_addr);
     }
 
     if(mode == '1') {
-      etimer_set(&periodic_timer, SEND_INTERVAL );
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-      etimer_reset(&periodic_timer);
-      etimer_set(&send_timer, SEND_TIME);
+      //etimer_set(&periodic_timer, SEND_INTERVAL * 2 );
+      //PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
+      //etimer_reset(&periodic_timer);
+
       if((currrent_neigh_pos) == 0) {
 
         if(required[0] == '1') {
+          etimer_set(&send_timer, SEND_TIME);
+
+          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&send_timer));
             simple_udp_sendto(&connection, "R1", sizeof("R1"), &parent_addr);
         }
         else {
           int i = 0;
-          for(i = 0 ; i < 10 ; i++) {
+          for(i = 0 ; i < 1 ; i++) {
+            //etimer_set(&send_timer, SEND_TIME);
+
+            //PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&send_timer));
               simple_udp_sendto(&connection, "R0", sizeof("R0"), &parent_addr);
           }
 
@@ -743,11 +763,6 @@ PROCESS_THREAD(broadcast_example_process, ev, data)
       }
     }
 
-
-    j++;
-    if(j == 100) {
-      j = 0;
-    }
     }
   PROCESS_END();
 }
@@ -770,7 +785,8 @@ udp_rx_callback_rpl(struct simple_udp_connection *c,
 
 PROCESS_THREAD(udp_client_process, ev, data)
 {
-  static struct etimer periodic_timer;
+  static struct etimer periodic_timer_;
+  //static struct etimer send_timer;
   static unsigned count;
   static char str[32];
   uip_ipaddr_t dest_ipaddr;
@@ -781,15 +797,17 @@ PROCESS_THREAD(udp_client_process, ev, data)
   simple_udp_register(&udp_conn, UDP_CLIENT_PORT, NULL,
                       UDP_SERVER_PORT, udp_rx_callback_rpl);
 
-  etimer_set(&periodic_timer, SEND_INTERVAL * 0.5);
+  etimer_set(&periodic_timer_, SEND_INTERVAL );
   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
 
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer_));
     if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
+
       LOG_INFO("Sending request %u to ", count);
       LOG_INFO_6ADDR(&dest_ipaddr);
       LOG_INFO_("\n");
       snprintf(str, sizeof(str), "hello %d", count);
+
       simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
       count++;
     } else {
@@ -797,7 +815,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
     }
 
     /* Add some jitter */
-    etimer_set(&periodic_timer, SEND_INTERVAL / 5);
+    etimer_set(&periodic_timer_, SEND_INTERVAL);
   }
 
   PROCESS_END();

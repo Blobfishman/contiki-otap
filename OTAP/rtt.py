@@ -3,10 +3,11 @@ import re
 from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import pickle
 
 
 
-filename = './worstcase_8080.txt'
+filename = './grid_65100.txt'
 
 
 #Öffnen der Datei und auslesen aller Zeilen
@@ -18,7 +19,7 @@ lines_ = []
 for line in lines:
 	lines_.append(line)
 	
-	if ('Sending update') in line:
+	if ('RESENDING BROADCAST') in line:
 		break
 
 
@@ -60,11 +61,11 @@ def calc_rtt(RTT,i) :
 				s = re.search(r'\d+', line[2]).group()
 				int(s)
 				
-				
+				print(s)
 				for line_2 in filtered_lines :
 					if ("Received Data") in line_2[2] and (line_2[2][len(line_2[2]) - 1]) == str(i):
 						d = re.search(r'\d+', line_2[2]).group()
-								
+							
 						
 						if( s == d):
 											
@@ -78,6 +79,50 @@ def calc_rtt(RTT,i) :
 												
 #Aufruf für jeden Client
 
+l2 =[]
+l3 =[]
+l4 =[]
+l5 =[]
+l6 =[]
+l7 =[]
+l8 =[]
+l9 =[]
+
+
+
+
+try:
+	with open ("RTT2" ,'rb') as fp:
+		l2 = pickle.load(fp)
+	with open ("RTT3" ,'rb') as fp:
+		l3 = pickle.load(fp)
+	with open ("RTT4" ,'rb') as fp:
+		l4 = pickle.load(fp)
+	with open ("RTT5" ,'rb') as fp:
+		l5 = pickle.load(fp)
+	with open ("RTT6" ,'rb') as fp:
+		l6 = pickle.load(fp)
+	with open ("RTT7" ,'rb') as fp:
+		l7 = pickle.load(fp)
+	with open ("RTT8" ,'rb') as fp:
+		l8 = pickle.load(fp)
+	with open ("RTT9" ,'rb') as fp:
+		l9 = pickle.load(fp)
+except:
+	print("yoo")
+RTT_2 = l2
+RTT_3 = l3
+RTT_4 = l4
+RTT_5 = l5
+RTT_6 = l6
+RTT_7 = l7
+RTT_8 = l8
+RTT_9 = l9
+RTT_10 = []
+RTT_11 = []
+RTT_12 = []
+RTT_13 = []
+
 calc_rtt(RTT_2,2)
 calc_rtt(RTT_3,3)
 calc_rtt(RTT_4,4)
@@ -87,6 +132,8 @@ calc_rtt(RTT_7,7)
 calc_rtt(RTT_8,8)
 calc_rtt(RTT_9,9)
 
+
+print(RTT_3)
 
 
 #Erstellung des Boxbplot mit ausgewerteten Daten
