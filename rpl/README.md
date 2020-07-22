@@ -1,0 +1,1 @@
+Um das normale RPL Lite verwenden zu können müssen die Veränderungen in der os/net/link-stats.c auskommentiert werden.
