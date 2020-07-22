@@ -3,5 +3,5 @@ all: $(CONTIKI_PROJECT)
 
 # MAKE_MAC = MAKE_MAC_TSCH
 
-CONTIKI=../contiki-ng
+CONTIKI=../../contiki-ng
 include $(CONTIKI)/Makefile.include
