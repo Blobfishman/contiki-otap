@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = udp-client udp-server updater-test node2
+CONTIKI_PROJECT = node sink
 all: $(CONTIKI_PROJECT)
 
 CONTIKI=../contiki-ng

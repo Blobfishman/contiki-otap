@@ -1,5 +1,5 @@
-CONTIKI_PROJECT = udp-client udp-server
+CONTIKI_PROJECT = udp-client udp-server gateway
 all: $(CONTIKI_PROJECT)
 
-CONTIKI=../..
+CONTIKI=../contiki-ng
 include $(CONTIKI)/Makefile.include
