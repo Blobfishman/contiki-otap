@@ -19,6 +19,7 @@
 
 static struct ctimer timer_energy;
 static struct ctimer timer_app;
+static struct ctimer timer_transmit;
 
 static struct simple_udp_connection udp_conn;
 
@@ -81,6 +82,25 @@ void app_callback(void *ptr) {
         LOG_INFO("Not reachable yet\n");
     }
 }
+void transmit_rate_callback(void *ptr){
+    ctimer_reset(&timer_transmit);
+
+    rpl_nbr_t *nbr = nbr_table_head(rpl_neighbors);
+    while (nbr != NULL){
+        uip_ipaddr_t *receiver_ipaddr =  rpl_neighbor_get_ipaddr(nbr);
+        
+        const struct link_stats *link;
+        link = link_stats_from_lladdr(rpl_neighbor_get_lladdr(nbr));
+        LOG_INFO("etx: %d, rssi: %d from ", link->etx, link->rssi);
+        LOG_INFO_6ADDR(receiver_ipaddr);
+        LOG_INFO_("\n");
+
+        nbr = nbr_table_next(rpl_neighbors, nbr);
+
+    }
+    
+}
+
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_client_process, "UDP client");
 AUTOSTART_PROCESSES(&udp_client_process);
@@ -107,8 +127,9 @@ PROCESS_THREAD(udp_client_process, ev, data) {
                         udp_rx_callback);
     
 
-    ctimer_set(&timer_energy, 10 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), energy_callback, NULL);
-    ctimer_set(&timer_app, 5 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), app_callback, NULL);
+    ctimer_set(&timer_energy, 20 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), energy_callback, NULL);
+    ctimer_set(&timer_app, 10 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), app_callback, NULL);
+    ctimer_set(&timer_transmit, 10 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), transmit_rate_callback, NULL);
     PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

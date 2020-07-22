@@ -65,7 +65,7 @@ void energy_callback(void *ptr) {
         LOG_INFO_("\n");
 
     } else {
-        LOG_INFO("Not reachable yet\n");
+        /* LOG_INFO("Not reachable yet\n"); */
     }
 }
 
@@ -87,7 +87,7 @@ void app_callback(void *ptr) {
         snprintf(str, sizeof(str), "matrix: %d", matrix);
         simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
     } else {
-        LOG_INFO("Not reachable yet\n");
+        /* LOG_INFO("Not reachable yet\n"); */
     }
 }
 
@@ -107,11 +107,11 @@ void transmit_rate_callback(void *ptr){
         /* LOG_INFO_6ADDR(receiver_ipaddr); */
         /* LOG_INFO_("\n"); */
         
-        const struct link_stats *link;
-        link = link_stats_from_lladdr(rpl_neighbor_get_lladdr(nbr));
-        LOG_INFO("etx: %d, rssi: %d from ", link->etx, link->rssi);
-        LOG_INFO_6ADDR(receiver_ipaddr);
-        LOG_INFO_("\n");
+        /* const struct link_stats *link; */
+        /* link = link_stats_from_lladdr(rpl_neighbor_get_lladdr(nbr)); */
+        /* LOG_INFO("etx: %d, rssi: %d from ", link->etx, link->rssi); */
+        /* LOG_INFO_6ADDR(receiver_ipaddr); */
+        /* LOG_INFO_("\n"); */
 
         simple_udp_sendto(&udp_tx_rpl_conn, str, strlen(str), receiver_ipaddr);
         nbr = nbr_table_next(rpl_neighbors, nbr);
@@ -126,9 +126,9 @@ static void udp_rpl_tx_callback(struct simple_udp_connection *c,
                             uint16_t receiver_port, const uint8_t *data,
                             uint16_t datalen) {
 
-    LOG_INFO("Received trasmitrate '%.*s' from ", datalen, (char *)data);
-    LOG_INFO_6ADDR(sender_addr);
-    LOG_INFO_("\n");
+    /* LOG_INFO("Received trasmitrate '%.*s' from ", datalen, (char *)data); */
+    /* LOG_INFO_6ADDR(sender_addr); */
+    /* LOG_INFO_("\n"); */
     unsigned short data_num = 0;
     unsigned short base = 1;
     unsigned short i;
@@ -192,9 +192,9 @@ PROCESS_THREAD(udp_client_process, ev, data) {
     
     nbr_table_register(transmit_rates_table, NULL);
 
-    ctimer_set(&timer_energy, 10 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), energy_callback, NULL);
-    ctimer_set(&timer_app, 5 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), app_callback, NULL);
-    ctimer_set(&timer_transmit, 5 * CLOCK_SECOND, transmit_rate_callback, NULL);
+    ctimer_set(&timer_energy, 20 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), energy_callback, NULL);
+    ctimer_set(&timer_app, 10 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), app_callback, NULL);
+    ctimer_set(&timer_transmit, 10 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), transmit_rate_callback, NULL);
     PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

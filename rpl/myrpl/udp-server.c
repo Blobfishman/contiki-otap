@@ -101,9 +101,9 @@ static void udp_rpl_tx_callback(struct simple_udp_connection *c,
                             uint16_t receiver_port, const uint8_t *data,
                             uint16_t datalen) {
 
-    LOG_INFO("Received trasmitrate '%.*s' from ", datalen, (char *)data);
-    LOG_INFO_6ADDR(sender_addr);
-    LOG_INFO_("\n");
+    /* LOG_INFO("Received trasmitrate '%.*s' from ", datalen, (char *)data); */
+    /* LOG_INFO_6ADDR(sender_addr); */
+    /* LOG_INFO_("\n"); */
     unsigned short data_num = 0;
     unsigned short base = 1;
     short i;

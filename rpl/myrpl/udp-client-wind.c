@@ -65,7 +65,7 @@ void energy_callback(void *ptr) {
         LOG_INFO_("\n");
 
     } else {
-        LOG_INFO("Not reachable yet\n");
+        /* LOG_INFO("Not reachable yet\n"); */
     }
 }
 
@@ -87,7 +87,7 @@ void app_callback(void *ptr) {
       snprintf(str, sizeof(str), "wind: %d km/h", wind);
       simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
     } else {
-        LOG_INFO("Not reachable yet\n");
+        /* LOG_INFO("Not reachable yet\n"); */
     }
 }
 
@@ -107,11 +107,11 @@ void transmit_rate_callback(void *ptr){
         /* LOG_INFO_6ADDR(receiver_ipaddr); */
         /* LOG_INFO_("\n"); */
         
-        const struct link_stats *link;
-        link = link_stats_from_lladdr(rpl_neighbor_get_lladdr(nbr));
-        LOG_INFO("etx: %d, rssi: %d from ", link->etx, link->rssi);
-        LOG_INFO_6ADDR(receiver_ipaddr);
-        LOG_INFO_("\n");
+        /* const struct link_stats *link; */
+        /* link = link_stats_from_lladdr(rpl_neighbor_get_lladdr(nbr)); */
+        /* LOG_INFO("etx: %d, rssi: %d from ", link->etx, link->rssi); */
+        /* LOG_INFO_6ADDR(receiver_ipaddr); */
+        /* LOG_INFO_("\n"); */
 
         simple_udp_sendto(&udp_tx_rpl_conn, str, strlen(str), receiver_ipaddr);
         nbr = nbr_table_next(rpl_neighbors, nbr);
@@ -190,9 +190,9 @@ PROCESS_THREAD(udp_client_process, ev, data) {
     
     nbr_table_register(transmit_rates_table, NULL);
 
-    ctimer_set(&timer_energy, 10 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), energy_callback, NULL);
-    ctimer_set(&timer_app, 4 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), app_callback, NULL);
-    ctimer_set(&timer_transmit, 5 * CLOCK_SECOND, transmit_rate_callback, NULL);
+    ctimer_set(&timer_energy, 20 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), energy_callback, NULL);
+    ctimer_set(&timer_app, 8 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), app_callback, NULL);
+    ctimer_set(&timer_transmit, 10 * CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)), transmit_rate_callback, NULL);
     PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
