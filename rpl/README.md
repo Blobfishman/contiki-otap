@@ -1,1 +1,1 @@
-Um das normale RPL Lite verwenden zu können müssen die Veränderungen in der os/net/link-stats.c auskommentiert werden.
+Um die RPL Lite Erweiterung verwenden zu können muss die contiki-ng/os/net/link-stats.c mit der rpl/link-stats.c Datei vertauscht werden
