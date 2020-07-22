@@ -17,8 +17,8 @@
 static struct simple_udp_connection udp_conn;
 
 /*---------------------------------------------------------------------------*/
-PROCESS(udp_client_process, "UDP client");
-AUTOSTART_PROCESSES(&udp_client_process);
+PROCESS(node_process, "Node");
+AUTOSTART_PROCESSES(&node_process);
 /*---------------------------------------------------------------------------*/
 static void
 udp_rx_callback(struct simple_udp_connection *c,
@@ -30,6 +30,7 @@ udp_rx_callback(struct simple_udp_connection *c,
          uint16_t datalen)
 {
 
+  // Handle incoming messages:
   LOG_INFO("Received response '%.*s' from ", datalen, (char *) data);
   LOG_INFO_6ADDR(sender_addr);
 #if LLSEC802154_CONF_ENABLED
@@ -39,7 +40,7 @@ udp_rx_callback(struct simple_udp_connection *c,
 
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(udp_client_process, ev, data)
+PROCESS_THREAD(node_process, ev, data)
 {
   static struct etimer periodic_timer;
   static unsigned count;
@@ -53,31 +54,9 @@ PROCESS_THREAD(udp_client_process, ev, data)
                       UDP_SERVER_PORT, udp_rx_callback);
 
 
-  radio_value_t chan;
-
-  NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &chan);
-
-  LOG_INFO_("CHANNEL: %u \n", chan);
-
-  etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+  // While loop to send messages, probably should implement sleeping or timer events to not kill the network
   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
-
-    if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
-      /* Send to DAG root */
-      LOG_INFO("Sending request %u to ", count);
-      LOG_INFO_6ADDR(&dest_ipaddr);
-      LOG_INFO_("\n");
-      snprintf(str, sizeof(str), "hello %d", count);
-      simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
-      count++;
-    } else {
-      LOG_INFO("Not reachable yet\n");
-    }
-
-    /* Add some jitter */
-    etimer_set(&periodic_timer, SEND_INTERVAL
-      - CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)));
+    simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
   }
 
   PROCESS_END();

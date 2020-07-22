@@ -12,7 +12,7 @@
 #define UDP_CLIENT_PORT	8765
 #define UDP_SERVER_PORT	5678
 
-#define SEND_INTERVAL		  (60 * CLOCK_SECOND)
+#define SEND_INTERVAL		  (2 * CLOCK_SECOND)
 
 static struct simple_udp_connection udp_conn;
 
@@ -52,14 +52,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
   simple_udp_register(&udp_conn, UDP_CLIENT_PORT, NULL,
                       UDP_SERVER_PORT, udp_rx_callback);
 
-
-  radio_value_t chan;
-
-  NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &chan);
-
-  LOG_INFO_("CHANNEL: %u \n", chan);
-
-  etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
+  etimer_set(&periodic_timer, SEND_INTERVAL);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
 
@@ -74,11 +67,9 @@ PROCESS_THREAD(udp_client_process, ev, data)
     } else {
       LOG_INFO("Not reachable yet\n");
     }
-
-    /* Add some jitter */
-    etimer_set(&periodic_timer, SEND_INTERVAL
-      - CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)));
   }
+
+  etimer_set(&periodic_timer, SEND_INTERVAL);
 
   PROCESS_END();
 }
