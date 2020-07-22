@@ -7,13 +7,11 @@
 long xor_diff(char *old, long size_old, char *new, long size_new, char *patch) {
   if (size_old > size_new) {
     long i = 0;
-    patch = malloc(size_new);
     for (; i < size_new; i++) {
       patch[i] = old[i] ^ new[i];
     }
   } else {
     long i = 0;
-    patch = malloc(size_new);
     for (; i < size_old; i++) {
       patch[i] = old[i] ^ new[i];
     }
@@ -21,6 +19,7 @@ long xor_diff(char *old, long size_old, char *new, long size_new, char *patch) {
       patch[i] = new[i];
     }
   }
+  return 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -56,8 +55,7 @@ int main(int argc, char *argv[]) {
   fclose(innew);
 
   // create output buffer
-  long fsize_patch_max = bsdiff_patchsize_max(fsize_old, fsize_new);
-  char *patch_buff = malloc(fsize_patch_max + 1);
+  char *patch_buff = malloc(fsize_new);
 
   // create diff
   int ret =
@@ -65,15 +63,15 @@ int main(int argc, char *argv[]) {
   free(in_old_buff);
   free(in_new_buff);
   if (ret == -1) {
-    printf("bsdiff failed\n");
+    printf("xor failed\n");
     return -1;
   }
 
   // compress diff
-  long compressed_buff_size = fsize_patch_max * 1.05;
+  long compressed_buff_size = fsize_new * 1.05;
   char *compressed_buff = malloc(compressed_buff_size);
   long file_size =
-      fastlz_compress_level(2, patch_buff, fsize_patch_max, compressed_buff);
+      fastlz_compress_level(2, patch_buff, fsize_new, compressed_buff);
 
   // write diff file
   FILE *output = fopen(argv[3], "wr");
