@@ -1,11 +1,12 @@
 Ich habe meine Programme direkt im Repo von Contiki-OS erstellt:
 
-test-deluge.c 
+test-deluge.c:
 
---> deluge/examples/sky/test-deluge
+--> deluge/examples/sky/test-deluge.c
 
-des weiteren habe ich unter
+deluge.c /deluge.h
 
 --> deluge/apps/deluge 
 
-den Ordner erstellt, diese gehören zur Standartbibliothek, mussten jedoch angepasst werden, da sie vor 4 Jahren aus dem offiziellen Repo entfernt wurden.
+deluge.c und deluge.h gehörten zur Standardbibliothek, wurden jedoch vor 4 Jahren entfernt.
+Ich habe die Dateien wieder eingefügt mit ein paar kleinen Änderungen, da sie nicht mehr kompelierten.
