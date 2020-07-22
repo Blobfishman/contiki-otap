@@ -1,0 +1,5 @@
+500 byte groß
+kein tx/tr 100%
+pagesize 250
+updatepackagesize 50
+
